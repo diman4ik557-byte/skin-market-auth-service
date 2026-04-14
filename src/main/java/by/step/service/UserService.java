@@ -60,6 +60,17 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        User user = findByUsername(username);
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        System.out.println("Password changed for user: " + username);
+    }
+
     public User findByUsername(String username) {
         return users.stream()
                 .filter(user -> user.getUsername().equals(username))
