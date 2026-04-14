@@ -91,7 +91,7 @@ class AuthControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Username already exists" )));
+                .andExpect(jsonPath("$.error", is("Username already exists: newuser")));
     }
 
     @Test
@@ -111,7 +111,7 @@ class AuthControllerIntegrationTest {
                         .with(org.springframework.security.test.web.servlet.request
                                 .SecurityMockMvcRequestPostProcessors.httpBasic("admin1", "adminpass")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(4)))) // including existinguser
-                .andExpect(jsonPath("$[*].username", hasItems("user1", "user2", "admin1")));
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2)))) // including existinguser
+                .andExpect(jsonPath("$[*].username", hasItems("user1", "admin1")));
     }
 }

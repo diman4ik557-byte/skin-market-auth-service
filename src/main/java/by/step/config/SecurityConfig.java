@@ -11,9 +11,10 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -30,16 +31,20 @@ public class SecurityConfig {
     @Profile("basic | default")
     public SecurityFilterChain basicFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        // Только публичные эндпоинты
-                        .requestMatchers("/api/public/**").permitAll()
+                        // Публичные эндпоинты
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/public/**").permitAll()  // ← всё, что начинается с /public/
                         .requestMatchers("/hello").authenticated()
-                        .requestMatchers("/api/auth/register","/api/auth/login").permitAll()
-                        // Все остальные /api/* требуют аутентификации
+
+                        // API эндпоинты
                         .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
                         .requestMatchers("/api/**").authenticated()
+
+                        // Любые другие запросы
+                        .anyRequest().authenticated()
                 )
                 .userDetailsService(userService)
                 .httpBasic(httpBasic -> httpBasic.realmName("Demo App"));
@@ -59,8 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
                 )
-                .formLogin(form -> form
-                        .permitAll()  // Используем стандартную страницу Spring Security
+                .formLogin(AbstractAuthenticationFilterConfigurer::permitAll  // Используем стандартную страницу Spring Security
                 );
         return http.build();
     }
@@ -95,7 +99,7 @@ public class SecurityConfig {
     @Profile("jwt")
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

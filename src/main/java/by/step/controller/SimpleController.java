@@ -6,11 +6,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class SimpleController {
-    @GetMapping("/hello")
 
+    @GetMapping("/hello")
     @PreAuthorize("hasRole('ADMIN')")
     public String hello(){
         return "Hello world";
+    }
+
+    @GetMapping("/public/hello")
+    public String publicHello() {
+        return "Hello public!";
     }
 
 }

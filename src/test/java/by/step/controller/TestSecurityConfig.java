@@ -16,11 +16,11 @@ public class TestSecurityConfig {
     @Primary
     public SecurityFilterChain testFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Отключаем CSRF для тестов
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/me").authenticated()
-                        .requestMatchers("/api/auth/**").permitAll() // Разрешаем все auth эндпоинты
-                        .anyRequest().authenticated() // Остальные требуют аутентификации
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.realmName("Test App"));
 

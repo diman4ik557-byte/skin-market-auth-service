@@ -135,14 +135,14 @@ class UserServiceTest {
     @Test
     @DisplayName("Should get all users")
     void getAllUsers() {
-        userService.registerUser("user1", "123", "user1@example.com", Set.of(Role.USER));
-        userService.registerUser("user2", "456", "user2@example.com", Set.of(Role.USER));
+        userService.registerUser("user1", "pass1", "user1@example.com", Set.of(Role.USER));
+        userService.registerUser("user2", "pass2", "user2@example.com", Set.of(Role.USER));
         userService.registerUser("admin2", "adminpass2", "admin2@example.com", Set.of(Role.ADMIN));
 
         var allUsers = userService.getAllUsers();
 
-        assertThat(allUsers).hasSize(6); // 3 new + 3 default from initTestUsers()
+        assertThat(allUsers).hasSize(6); // 3 new + 3 default (user, admin, artist)
         assertThat(allUsers).extracting(User::getUsername)
-                .contains("user1", "user2", "admin2", "user", "admin", "superuser");
+                .contains("user1", "user2", "admin2", "user", "admin", "artist");
     }
 }
