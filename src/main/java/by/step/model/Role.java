@@ -1,4 +1,8 @@
 package by.step.model;
 
-public interface Role {
+public enum Role {
+    USER,
+    ARTIST,
+    STUDIO,
+    ADMIN
 }
