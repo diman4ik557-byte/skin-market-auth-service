@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Set;
 
@@ -19,7 +20,8 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService();
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        userService = new UserService(passwordEncoder);
     }
 
     @Test
