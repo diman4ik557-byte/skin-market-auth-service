@@ -17,6 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * REST контроллер для JWT аутентификации.
+ * Предоставляет endpoint для входа с получением JWT токена.
+ * Активен только при профиле "jwt".
+ *
+ * @author Skin Market Team
+ * @version 1.0
+ */
 @RestController
 @RequestMapping("/api/jwt/auth")
 @Profile("jwt")
@@ -30,6 +38,26 @@ public class JwtAuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+        String username = request.getUsername().trim();
+        String password = request.getPassword().trim();
+
+        System.out.println("=== LOGIN ATTEMPT ===");
+        System.out.println("Username: " + request.getUsername());
+        System.out.println("Password: " + request.getPassword());
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+            System.out.println("Authentication successful!");
+        } catch (Exception e) {
+            System.out.println("Authentication failed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
