@@ -21,8 +21,8 @@ public class UserService implements UserDetailsService {
     private final AtomicLong idCounter = new AtomicLong(1);
     private final PasswordEncoder passwordEncoder;
 
-    public UserService() {
-        this.passwordEncoder = new BCryptPasswordEncoder();
+    public UserService(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
         initTestUsers();
     }
 
