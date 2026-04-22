@@ -19,6 +19,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Конфигурация безопасности для auth-сервиса.
+ * Определяет цепочки фильтров для разных профилей:
+ * - basic: Basic аутентификация
+ * - form: Form-based аутентификация
+ * - form-custom: Кастомная страница входа
+ * - jwt: JWT аутентификация (stateless)
+ *
+ * @author Skin Market Team
+ * @version 1.0
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -27,8 +38,14 @@ public class SecurityConfig {
 
     private final UserService userService;
 
+    /**
+     * Настройка безопасности для профиля "basic" (Basic Authentication).
+     *
+     * @param http HttpSecurity для настройки
+     * @return SecurityFilterChain
+     */
     @Bean
-    @Profile("basic | default")
+    @Profile({"basic", "default"})
     public SecurityFilterChain basicFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -39,7 +56,8 @@ public class SecurityConfig {
                         .requestMatchers("/hello").authenticated()
 
                         // API эндпоинты
-                        .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
                         .requestMatchers("/api/**").authenticated()
 
@@ -51,6 +69,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Настройка безопасности для профиля "form" (стандартная форма входа Spring Security).
+     *
+     * @param http HttpSecurity для настройки
+     * @return SecurityFilterChain
+     */
     @Bean
     @Profile("form")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -69,6 +93,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Настройка безопасности для профиля "form-custom" (кастомная страница входа).
+     *
+     * @param http HttpSecurity для настройки
+     * @return SecurityFilterChain
+     */
     @Bean
     @Profile("form-custom")
     public SecurityFilterChain formFilterChain(HttpSecurity http) throws Exception {
@@ -95,35 +125,44 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Настройка безопасности для профиля "jwt" (JWT аутентификация, stateless).
+     *
+     * @param http HttpSecurity для настройки
+     * @return SecurityFilterChain
+     */
     @Bean
     @Profile("jwt")
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .cors(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/jwt/auth/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
+    /**
+     * Создаёт бин JwtAuthenticationFilter для профиля "jwt".
+     *
+     * @return JwtAuthenticationFilter
+     */
     @Bean
     @Profile("jwt")
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(13);
-//        return NoOpPasswordEncoder.getInstance();
-    }
-
+    /**
+     * Создаёт бин AuthenticationManager.
+     *
+     * @param authConfig конфигурация аутентификации
+     * @return AuthenticationManager
+     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig

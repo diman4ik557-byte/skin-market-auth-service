@@ -17,6 +17,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * REST контроллер для аутентификации и управления пользователями.
+ * Предоставляет endpoints для регистрации, входа, получения информации о текущем пользователе
+ * и административных операций.
+ *
+ * @author Skin Market Team
+ * @version 1.0
+ */
 @RestController
 @RequestMapping("/api")
 public class AuthController {
@@ -27,10 +35,16 @@ public class AuthController {
         this.userService = userService;
     }
 
+    /**
+     * Регистрирует нового пользователя в системе.
+     *
+     * @param request DTO с данными регистрации (username, password, email, role)
+     * @return ResponseEntity с информацией о зарегистрированном пользователе
+     *         или сообщением об ошибке
+     */
     @PostMapping("/auth/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            // Определяем роль (по умолчанию USER)
             Role role = request.getRole() != null ? request.getRole() : Role.USER;
             Set<Role> roles = Set.of(role);
 
@@ -55,10 +69,16 @@ public class AuthController {
         }
     }
 
+    /**
+     * Выполняет вход пользователя в систему.
+     * В ответе возвращается информация о пользователе и инструкция по использованию Basic Auth.
+     *
+     * @param request DTO с username и password
+     * @return ResponseEntity с информацией о пользователе или ошибкой авторизации
+     */
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
-            // Spring Security автоматически проверит аутентификацию
             User user = userService.findByUsername(request.getUsername());
 
             Map<String, Object> response = new HashMap<>();
@@ -75,7 +95,12 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/auth/me")
+    /**
+     * Возвращает информацию о текущем авторизованном пользователе.
+     *
+     * @return ResponseEntity с username, authorities и статусом аутентификации
+     */
+    @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -88,12 +113,23 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Возвращает список всех пользователей (только для администратора).
+     *
+     * @return список всех пользователей
+     */
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    /**
+     * Удаляет пользователя по username (только для администратора).
+     *
+     * @param username имя пользователя для удаления
+     * @return ResponseEntity с подтверждением или ошибкой
+     */
     @DeleteMapping("/admin/users/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable String username) {
@@ -109,6 +145,11 @@ public class AuthController {
         }
     }
 
+    /**
+     * Возвращает профиль текущего пользователя (доступно для USER и ADMIN).
+     *
+     * @return ResponseEntity с данными профиля пользователя
+     */
     @GetMapping("/user/profile")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> getUserProfile() {
